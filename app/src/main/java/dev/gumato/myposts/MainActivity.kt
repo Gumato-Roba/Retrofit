@@ -5,39 +5,49 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import dev.gumato.myposts.databinding.ActivityMainBinding
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class MainActivity : AppCompatActivity() {
+    lateinit var  binding: ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding= ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         fetchPosts()
     }
-    fun fetchPosts(){
-        var retrofit=ApiClient.buildApiClient(ApiInterface::class.java)
-        var request=retrofit.getPosts()
 
-        var RecyclerView=findViewById<RecyclerView>(R.id.rvposts)
-        request.enqueue(object :Callback<List<Post>> {
-            override fun onResponse(call: Call<List<Post>>, response: Response<List<Post>>) {
+
+    fun fetchPosts(){
+        var apiClient = ApiClient.buildApiClient(ApiInterface::class.java)
+        var request =  apiClient.getPosts()
+
+        request.enqueue(object : Callback<List<Post>> {
+            override fun onResponse(
+                call: retrofit2.Call<List<Post>>,
+                response: Response<List<Post>>
+            ) {
                 if (response.isSuccessful){
-                    var post=response.body()
-                    Toast.makeText(applicationContext,"fetched ${post!!.size} posts",
-                        Toast.LENGTH_LONG).show()
-                    RecyclerView.apply {
-                        layoutManager=LinearLayoutManager(this@MainActivity)
-                        adapter=Display_Posts(response.body()!!)
-                    }
+                    var posts = response.body()
+                    Toast.makeText(baseContext,"Fetched ${posts!!.size} posts", Toast.LENGTH_LONG)
+                        .show()
+
+                    var displayPostsRvAdapter=displayPostsRvAdapter(posts)
+                    binding.rvposts.layoutManager=LinearLayoutManager(baseContext)
+                    binding.rvposts.adapter = displayPostsRvAdapter
 
                 }
             }
 
-            override fun onFailure(call: Call<List<Post>>, t: Throwable) {
-                TODO("Not yet implemented")
-            }
+                     override fun onFailure(call: Call<List<Post>>, t: Throwable) {
+         }
+
         })
+//        fun displayPosts(postsList: List<Post>){
+//          binding.rvposts.layoutManager= LinearLayoutManager(this)
+//      }
 
     }
 }
